@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ExamenUno</string>
+    <string name="title_activity_students">StudentsActivity</string>
+    <string name="title_activity_student_detail">StudentDetailActivity</string>
 </resources>
