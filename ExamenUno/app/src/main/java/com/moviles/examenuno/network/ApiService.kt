@@ -19,14 +19,16 @@ interface ApiService {
     suspend fun getStudent(): Response<List<Student>>
 
     @POST("api/student")
-    @Multipart
-    suspend fun addStudent(student: Student): Student
+    suspend fun addStudent(@Body request: Student): Response<Student>
 
     @PUT("api/student/{id}")
-    suspend fun updateStudent(@Path("id") id: Int?, @Body studentDto: Student): Student
+    suspend fun updateStudent(@Path("id") id: Int?, @Body request: Student): Response<Student>
 
     @DELETE("api/student/{id}")
     suspend fun deleteStudent(@Path("id") id: Int?): Response<Unit>
+
+    @GET("api/student/course/{courseId}")
+    suspend fun getStudentByCourseId(@Path("courseId") id: Int): Response<List<Student>>
 
     @GET("api/course")
     suspend fun getCourse(): List<Course>

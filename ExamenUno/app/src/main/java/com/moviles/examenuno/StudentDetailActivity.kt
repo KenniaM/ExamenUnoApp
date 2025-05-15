@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -51,134 +52,61 @@ class StudentDetailActivity : ComponentActivity() {
         setContent {
             ExamenUnoTheme {
                 val viewModel: StudentViewModel = viewModel()
-                studentScreen(viewModel)
+                StudentListScreen(viewModel)
             }
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun studentScreen(viewModel: StudentViewModel) {
+fun StudentListScreen(viewModel: StudentViewModel) {
     val students by viewModel.student.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedStudent by remember { mutableStateOf<Student?>(null) }
 
     LaunchedEffect(Unit) {
-        Log.i("Activity", "Coming here???")
         viewModel.getAllStudent()
     }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Students") }
+                title = { Text("Estudiantes") }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    selectedStudent = null
-                    showDialog = true
-                },
+                onClick = { viewModel.getAllStudent() },
                 containerColor = MaterialTheme.colorScheme.secondary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Event")
+                Icon(Icons.Default.Refresh, contentDescription = "Lista de estudiantes")
             }
         }
-
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
-            // Button with padding
-            Button(
-                modifier = Modifier
-                    .padding(16.dp) // Add padding around the button
-                    .fillMaxWidth(),
-                onClick = { viewModel.getAllStudent() }
-            ) {
-                Text("Refresh Students")
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            items(students) { student ->
+                StudentItem(student)
             }
-
-            // Spacer to ensure some space between button and the list
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Event List with remaining space
-            StudentList(students,
-                onEdit = { student ->
-                    selectedStudent = student
-                    showDialog = true
-                }, onDelete =
-                    {  })
-        }
-    }
-    if (showDialog) {
-        StudentDialog(
-            student = selectedStudent,
-            onDismiss = { showDialog = false },
-            onSave = {
-            }
-        )
-    }
-}
-@Composable
-fun StudentList(student: List<Student>, modifier: Modifier = Modifier, onEdit: (Student) -> Unit, onDelete: (Student) -> Unit) {
-    LazyColumn(modifier = modifier.padding(16.dp)) {
-        items(student) { student ->
-            StudentItem(student, onEdit, onDelete)
         }
     }
 }
 
 @Composable
-fun StudentItem(student: Student, onEdit: (Student) -> Unit, onDelete: (Student) -> Unit) {
+fun StudentItem(student: Student) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
         elevation = CardDefaults.elevatedCardElevation(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = student.name, style = MaterialTheme.typography.titleLarge)
-            Text(text = student.email, style = MaterialTheme.typography.bodyMedium)
-            Text(text = "📍 ${student.phone}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "📅 ${student.courseId}", style = MaterialTheme.typography.bodySmall)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(onClick = { onEdit(student) }) {
-                    Text("Edit", color = MaterialTheme.colorScheme.primary)
-                }
-                TextButton(onClick = { onDelete(student) }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
-            }
+            Text(text = "📧 ${student.email}", style = MaterialTheme.typography.bodyMedium)
+            Text(text = "📞 ${student.phone}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "📘 Curso: ${student.courseName}", style = MaterialTheme.typography.bodySmall)
         }
     }
-}
-
-@Composable
-fun StudentDialog(student: Student?, onDismiss: () -> Unit, onSave: (Student) -> Unit) {
-    var name by remember { mutableStateOf(student?.name ?: "") }
-    var email by remember { mutableStateOf(student?.email ?: "") }
-    var phone by remember { mutableStateOf(student?.phone ?: "") }
-    var courseId by remember { mutableStateOf(student?.courseId ?: "") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (student == null) "Add Event" else "Edit Event") },
-        text = {
-            Column {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
-                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
-                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") })
-            }
-        },
-        confirmButton = {
-            Button(onClick = {
-                onSave(Student(student?.id, name, email, phone, courseId))
-            }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = MaterialTheme.colorScheme.secondary)
-            }
-        }
-    )
 }

@@ -3,6 +3,7 @@ package com.moviles.examenuno
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -124,6 +126,7 @@ fun CourseScreen(viewModel: CourseViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedCourse by remember { mutableStateOf<Course?>(null) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         Log.i("Activity", "Coming here???")
@@ -151,14 +154,33 @@ fun CourseScreen(viewModel: CourseViewModel) {
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             // Button with padding
-            Button(
+            Row(
                 modifier = Modifier
-                    .padding(16.dp) // Add padding around the button
+                    .padding(16.dp)
                     .fillMaxWidth(),
-                onClick = { viewModel.fetchCourses() }
+                horizontalArrangement = Arrangement.SpaceBetween // Asegura que los botones estén separados
             ) {
-                Text("Lista de cursos")
+                Button(
+                    modifier = Modifier.weight(1f), // Distribuye el espacio equitativamente
+                    onClick = { viewModel.fetchCourses() }
+                ) {
+                    Text("Lista de cursos")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp)) // Espacio entre los botones
+
+                Button(
+                    modifier = Modifier.weight(1f), // Distribuye el espacio equitativamente
+                    onClick = {
+                        // Navegar a StudentDetailActivity
+                        val intent = Intent(context, StudentDetailActivity::class.java)
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Ver Estudiantes")
+                }
             }
+
 
             // Spacer to ensure some space between button and the list
             Spacer(modifier = Modifier.height(8.dp))
@@ -169,7 +191,14 @@ fun CourseScreen(viewModel: CourseViewModel) {
                     selectedCourse = course
                     showDialog = true
                 }, onDelete =
-                    { course -> viewModel.deleteCourse(course.id) })
+                    { course -> viewModel.deleteCourse(course.id)
+                    },
+                    onSelect = { course ->
+                    // Navegar a StudentsActivity
+                    val intent = Intent(context, StudentsActivity::class.java)
+                    intent.putExtra("COURSE_ID", course.id)
+                    context.startActivity(intent)
+                })
         }
     }
     if (showDialog) {
@@ -194,44 +223,42 @@ fun CourseList(
     courses: List<Course>,
     modifier: Modifier = Modifier,
     onEdit: (Course) -> Unit,
-    onDelete: (Course) -> Unit
+    onDelete: (Course) -> Unit,
+    onSelect: (Course) -> Unit
 ) {
     LazyColumn(modifier = modifier.padding(16.dp)) {
         items(courses) { course ->
-            CourseItem(course, onEdit, onDelete)
+            CourseItem(course, onEdit, onDelete, onSelect)
         }
     }
 }
 
 
 @Composable
-fun CourseItem(course: Course, onEdit: (Course) -> Unit, onDelete: (Course) -> Unit) {
+fun CourseItem(
+    course: Course,
+    onEdit: (Course) -> Unit,
+    onDelete: (Course) -> Unit,
+    onSelect: (Course) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp),
+            .padding(bottom = 8.dp)
+            .clickable { onSelect(course) }, // Navegar al seleccionar
         elevation = CardDefaults.elevatedCardElevation(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Nombre del curso
             Text(text = course.name, style = MaterialTheme.typography.titleLarge)
-
-            // Descripción
             course.description?.let {
                 Text(text = it, style = MaterialTheme.typography.bodyMedium)
             }
-
-            // Profesor
             course.professor?.let {
                 Text(text = "👨‍🏫 $it", style = MaterialTheme.typography.bodySmall)
             }
-
-            // Horario
             course.schedule?.let {
                 Text(text = "📅 $it", style = MaterialTheme.typography.bodySmall)
             }
-
-            // Imagen si existe
             course.image?.let {
                 Image(
                     painter = rememberAsyncImagePainter(it),
@@ -243,8 +270,6 @@ fun CourseItem(course: Course, onEdit: (Course) -> Unit, onDelete: (Course) -> U
                     contentScale = ContentScale.Crop
                 )
             }
-
-            // Botones de editar y eliminar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

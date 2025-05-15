@@ -6,4 +6,5 @@ data class Student(
     val email: String,
     val phone: String,
     val courseId: String,
+    val courseName: String? = null // New optional attribute
 )
