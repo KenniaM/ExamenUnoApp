@@ -1,5 +1,9 @@
 package com.moviles.examenuno
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -42,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.messaging.FirebaseMessaging
 import com.moviles.examenuno.models.Student
 import com.moviles.examenuno.ui.theme.ExamenUnoTheme
 import com.moviles.examenuno.viewmodel.StudentViewModel
@@ -49,6 +54,8 @@ import com.moviles.examenuno.viewmodel.StudentViewModel
 class StudentsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createNotificationChannel(this)
+        subscribeToTopic()
         enableEdgeToEdge()
         setContent {
             val courseId = intent.getIntExtra("COURSE_ID", -1)
@@ -195,4 +202,32 @@ fun StudentDialog(student: Student?, onDismiss: () -> Unit, onSave: (Student) ->
             }
         }
     )
+}
+
+fun createNotificationChannel(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channelId = "examen_reminder_channel"
+        val channelName = "Examen Reminders"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+
+        val channel = NotificationChannel(channelId, channelName, importance).apply {
+            description = "Notifies users about upcoming events"
+        }
+
+        val notificationManager =
+            context.getSystemService(NotificationManager::class.java)
+        notificationManager?.createNotificationChannel(channel)
+    }
+}
+
+
+fun subscribeToTopic() {
+    FirebaseMessaging.getInstance().subscribeToTopic("student_notifications")
+        .addOnCompleteListener { task ->
+            var msg = "Subscription successful"
+            if (!task.isSuccessful) {
+                msg = "Subscription failed"
+            }
+            Log.d("FCM", msg)
+        }
 }
