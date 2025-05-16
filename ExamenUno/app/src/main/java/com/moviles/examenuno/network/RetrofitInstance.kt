@@ -9,16 +9,7 @@ import okhttp3.OkHttpClient
 import com.moviles.examenuno.App
 
 object RetrofitInstance {
-
-    val api: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(API_BASE_URL) // Change to your API URL
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
-    }
-
-    /*private const val CACHE_SIZE = (5 * 1024 * 1024).toLong() // 5 MB
+    private const val CACHE_SIZE = (5 * 1024 * 1024).toLong() // 5 MB
 
     private val cache by lazy {
         Cache(App.instance.cacheDir, CACHE_SIZE)
@@ -48,13 +39,12 @@ object RetrofitInstance {
 
     val api: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(API_BASE_URL)
+            .baseUrl(API_BASE_URL) // Change to your API URL
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
-    }*/
-
+    }
 
 }
 

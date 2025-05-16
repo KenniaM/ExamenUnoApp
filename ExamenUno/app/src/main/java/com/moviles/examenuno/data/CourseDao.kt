@@ -10,12 +10,12 @@ import com.moviles.examenuno.models.CourseEntity
 @Dao
 interface CourseDao {
 
-    @Query("SELECT * FROM course")
-    suspend fun getAllCourse(): List<CourseEntity>
+    @Query("SELECT * FROM Courses")
+    suspend fun getAllCourse(): List<Course>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCourse(events: List<CourseEntity>)
+    suspend fun insertCourse(course: List<Course>)
 
-    @Query("DELETE FROM course")
+    @Query("DELETE FROM Courses")
     suspend fun deleteAllCourse()
 }

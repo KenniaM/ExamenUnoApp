@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
-
+    id ("kotlin-kapt")
 }
 
 android {
@@ -42,11 +42,13 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.runtime.livedata)
     val room_version = "2.7.1"
 
     implementation(libs.androidx.room.runtime)
-
-
+    implementation (libs.androidx.room.runtime)
+    kapt (libs.androidx.room.compiler)
+    implementation (libs.androidx.room.ktx)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -71,8 +73,9 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.okhttp)
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.coil.compose)
     implementation(libs.firebase.bom)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.analytics)
+
 }

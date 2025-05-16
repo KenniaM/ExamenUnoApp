@@ -16,7 +16,7 @@ import retrofit2.http.PUT
 
 interface ApiService {
     @GET("api/student")
-    suspend fun getStudent(): Response<List<Student>>
+    suspend fun getStudent(): List<Student>
 
     @POST("api/student")
     suspend fun addStudent(@Body request: Student): Response<Student>
@@ -28,7 +28,7 @@ interface ApiService {
     suspend fun deleteStudent(@Path("id") id: Int?): Response<Unit>
 
     @GET("api/student/course/{courseId}")
-    suspend fun getStudentByCourseId(@Path("courseId") id: Int): Response<List<Student>>
+    suspend fun getStudentByCourseId(@Path("courseId") id: Int): List<Student>
 
     @GET("api/course")
     suspend fun getCourse(): List<Course>

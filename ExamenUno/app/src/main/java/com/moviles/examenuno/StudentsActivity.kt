@@ -33,16 +33,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,6 +56,8 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.moviles.examenuno.models.Student
 import com.moviles.examenuno.ui.theme.ExamenUnoTheme
 import com.moviles.examenuno.viewmodel.StudentViewModel
+import com.moviles.examenuno.viewmodel.StudentViewModelFactory
+import kotlinx.coroutines.launch
 
 class StudentsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +74,10 @@ class StudentsActivity : ComponentActivity() {
                 Log.e("StudentsActivity", "No se recibió un Course ID válido.")
             }
             ExamenUnoTheme {
-                val viewModel: StudentViewModel = viewModel()
+                val context = LocalContext.current
+                val viewModel: StudentViewModel = viewModel(
+                    factory = StudentViewModelFactory(context)
+                )
                 studentScreen(viewModel,courseId)
             }
         }
@@ -77,12 +88,33 @@ class StudentsActivity : ComponentActivity() {
 @Composable
 fun studentScreen(viewModel: StudentViewModel,courseId: Int) {
     val students by viewModel.student.collectAsState()
+    val loadingState by viewModel.loadingState.observeAsState(initial = "Verificando conexión...")
     var showDialog by remember { mutableStateOf(false) }
     var selectedStudent by remember { mutableStateOf<Student?>(null) }
-
+    val coroutineScope = rememberCoroutineScope()
+    // Snackbar host state to manage Snackbar visibility
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
         Log.i("Activity", "Coming here???")
         viewModel.getAllStudentByCourseId(courseId)
+    }
+
+    // Show Snackbar when loading state changes
+    LaunchedEffect(loadingState) {
+        if (loadingState.isNotEmpty() && loadingState != "Verificando conexión...") {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = when (loadingState) {
+                        "Cargando desde la API..." -> "Sincronizando datos desde la API..."
+                        "Datos desde la API" -> "Datos cargados desde la API."
+                        "Cargando desde la caché..." -> "Mostrando datos locales desde la caché."
+                        "Error al cargar" -> "Error al cargar. Reintentando..."
+                        else -> "Estado desconocido"
+                    },
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
     }
 
     Scaffold(
@@ -91,6 +123,7 @@ fun studentScreen(viewModel: StudentViewModel,courseId: Int) {
                 title = { Text("Estudiantes") }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -105,16 +138,6 @@ fun studentScreen(viewModel: StudentViewModel,courseId: Int) {
 
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
-            // Button with padding
-            Button(
-                modifier = Modifier
-                    .padding(16.dp) // Add padding around the button
-                    .fillMaxWidth(),
-                onClick = { viewModel.getAllStudent() }
-            ) {
-                Text("Lista de estudiantes")
-            }
-
             // Spacer to ensure some space between button and the list
             Spacer(modifier = Modifier.height(8.dp))
 
