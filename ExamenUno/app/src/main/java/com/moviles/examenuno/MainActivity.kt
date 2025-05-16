@@ -68,9 +68,10 @@ import com.moviles.examenuno.models.Course
 import com.moviles.examenuno.viewmodel.CourseViewModel
 import com.moviles.examenuno.ui.theme.ExamenUnoTheme
 import com.moviles.examenuno.viewmodel.CourseViewModelFactory
-import com.moviles.examenuno.viewmodel.StudentViewModel
-import com.moviles.examenuno.viewmodel.StudentViewModelFactory
 import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.clip
+import coil.compose.AsyncImage
+import com.moviles.examenuno.common.Constants.IMAGES_BASE_URL
 
 class MainActivity : ComponentActivity() {
     /*override fun onCreate(savedInstanceState: Bundle?) {
@@ -225,7 +226,7 @@ fun CourseScreen(viewModel: CourseViewModel) {
                 }, onDelete =
                     { course -> viewModel.deleteCourse(course.id)
                     },
-                    onSelect = { course ->
+                onSelect = { course ->
                     // Navegar a StudentsActivity
                     val intent = Intent(context, StudentsActivity::class.java)
                     intent.putExtra("COURSE_ID", course.id)
@@ -265,7 +266,6 @@ fun CourseList(
     }
 }
 
-
 @Composable
 fun CourseItem(
     course: Course,
@@ -280,47 +280,50 @@ fun CourseItem(
             .clickable { onSelect(course) }, // Navegar al seleccionar
         elevation = CardDefaults.elevatedCardElevation(8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = course.name, style = MaterialTheme.typography.titleLarge)
-            course.description?.let {
-                Text(text = it, style = MaterialTheme.typography.bodyMedium)
-            }
-            course.professor?.let {
-                Text(text = "👨‍🏫 $it", style = MaterialTheme.typography.bodySmall)
-            }
-            course.schedule?.let {
-                Text(text = "📅 $it", style = MaterialTheme.typography.bodySmall)
-            }
-            course.image?.let {
+        Row(modifier = Modifier.padding(16.dp)) {
+            // Imagen del curso
+            course.imageUrl?.let {
                 Image(
-                    painter = rememberAsyncImagePainter(it),
+                    painter = rememberAsyncImagePainter(IMAGES_BASE_URL + it),
                     contentDescription = "Course Image",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .padding(top = 8.dp),
+                        .size(80.dp) // Tamaño de la imagen
+                        .clip(RoundedCornerShape(8.dp)) // Forma de la imagen
+                        .background(MaterialTheme.colorScheme.surface), // Fondo
                     contentScale = ContentScale.Crop
                 )
+                Spacer(modifier = Modifier.width(16.dp)) // Espacio entre la imagen y el texto
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(onClick = { onEdit(course) }) {
-                    Text("Editar", color = MaterialTheme.colorScheme.primary)
+
+            // Información del curso
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = course.name, style = MaterialTheme.typography.titleLarge)
+                course.description?.let {
+                    Text(text = it, style = MaterialTheme.typography.bodyMedium)
                 }
-                TextButton(onClick = { onDelete(course) }) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                course.professor?.let {
+                    Text(text = "👨‍🏫 $it", style = MaterialTheme.typography.bodySmall)
+                }
+                course.schedule?.let {
+                    Text(text = "📅 $it", style = MaterialTheme.typography.bodySmall)
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(onClick = { onEdit(course) }) {
+                        Text("Editar", color = MaterialTheme.colorScheme.primary)
+                    }
+                    TextButton(onClick = { onDelete(course) }) {
+                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         }
     }
 }
-
-
-
 
 @Composable
 fun CourseDialog(
@@ -383,7 +386,7 @@ fun CourseDialog(
                         id = course?.id,
                         name = name,
                         description = description,
-                        image = imageUri?.toString(),
+                        imageUrl = imageUri?.toString(),
                         schedule = schedule,
                         professor = professor
                     )
@@ -396,6 +399,6 @@ fun CourseDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancel", color = MaterialTheme.colorScheme.secondary)
             }
-        }
-    )
+            }
+        )
 }
