@@ -1,3 +1,5 @@
+
+
 package com.moviles.examenuno.models
 
 import androidx.room.Entity
@@ -9,7 +11,7 @@ data class Course(
     @PrimaryKey val id: Int?,
     val name: String,
     val description: String,
-    val image: String?,
+    val imageUrl: String?,
     val schedule: String,
-    val professor: String
+    val professor:String
 )
