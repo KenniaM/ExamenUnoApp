@@ -52,7 +52,7 @@ class StudentViewModel(private val context: Context) : ViewModel() {
 
     fun saveStudents(studentList: List<Student>) {
         viewModelScope.launch {
-            repository.insertStudent(studentList)
+            repository.insertStudents(studentList)
         }
     }
     fun getAllStudent() {
@@ -63,7 +63,7 @@ class StudentViewModel(private val context: Context) : ViewModel() {
                 if (hasInternet) {
                     val apiStudent = RetrofitInstance.api.getStudent()
                     repository.clearStudents()
-                    repository.insertStudent(apiStudent)
+                    repository.insertStudents(apiStudent)
                     Log.i("ViewModelInfo", "Datos sincronizados con API")
                     _loadingState.value = "Datos desde la API" // Una vez sincronizado
                 }else {
@@ -83,31 +83,33 @@ class StudentViewModel(private val context: Context) : ViewModel() {
     }
     fun getAllStudentByCourseId(courseId: Int) {
         viewModelScope.launch {
-            _loadingState.value = "Cargando desde la API..." // Muestra cuando cargamos desde la API
+            _loadingState.value = "Cargando desde la API..."
             isLoading.value = true
             try {
                 val hasInternet = App.hasInternet()
                 if (hasInternet) {
                     val apiStudent = RetrofitInstance.api.getStudentByCourseId(courseId)
                     repository.clearStudents()
-                    repository.insertStudent(apiStudent)
+                    repository.insertStudents(apiStudent)
                     Log.i("ViewModelInfo", "Datos sincronizados con API")
-                    _loadingState.value = "Datos desde la API" // Una vez sincronizado
-                }else {
-                    _loadingState.value = "Cargando desde la caché..." // Cuando no hay internet
+                    _loadingState.value = "Datos desde la API"
+                } else {
+                    _loadingState.value = "Cargando desde la caché..."
                 }
-                val localStudent = repository.getStudents()
-                _student.value = localStudent
+
+                val localStudents = repository.getStudentsByCourseId(courseId)
+                _student.value = localStudents
 
             } catch (e: Exception) {
                 Log.e("ViewModelError", "Error: ${e.message}", e)
                 _loadingState.value = "Error al cargar los Estudiantes"
 
-                val localStudent = repository.getStudents()
-                _student.value = localStudent
+                val localStudents = repository.getStudentsByCourseId(courseId)
+                _student.value = localStudents
             }
         }
     }
+
     fun addStudent(request: Student, courseId: Int) {
         viewModelScope.launch {
             isLoading.value = true

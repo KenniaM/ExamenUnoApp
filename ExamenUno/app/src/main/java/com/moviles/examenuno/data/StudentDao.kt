@@ -8,6 +8,9 @@ import com.moviles.examenuno.models.Student
 
 @Dao
 interface StudentDao {
+    @Query("SELECT * FROM Students WHERE courseId = :courseId")
+    suspend fun getStudentsByCourseId(courseId: Int): List<Student>
+
     @Query("SELECT * FROM Students")
     suspend fun getAllStudent(): List<Student>
 
