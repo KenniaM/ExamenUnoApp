@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 import com.moviles.examenuno.models.Course
 
 
-@Database(entities = [Course::class], version = 1, exportSchema = false)
+@Database(entities = [Course::class], version = 2, exportSchema = false)
 abstract class CourseDataBase : RoomDatabase() {
     abstract fun courseDao(): CourseDao
 }

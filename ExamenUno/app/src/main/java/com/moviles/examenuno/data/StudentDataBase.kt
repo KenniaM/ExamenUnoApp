@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.moviles.examenuno.models.Student
 
 
-@Database(entities = [Student::class], version = 1, exportSchema = false)
+@Database(entities = [Student::class], version = 2, exportSchema = false)
 abstract class StudentDataBase : RoomDatabase() {
     abstract fun studentDao(): StudentDao
 }
