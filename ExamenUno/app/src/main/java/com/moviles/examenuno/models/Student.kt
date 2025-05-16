@@ -1,7 +1,11 @@
 package com.moviles.examenuno.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "Students")
 data class Student(
-    val id: Int?, //Optional attribute
+    @PrimaryKey val id: Int?, //Optional attribute
     val name: String,
     val email: String,
     val phone: String,

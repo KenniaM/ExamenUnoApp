@@ -12,26 +12,75 @@ import java.io.File
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
+import com.moviles.examenuno.App
+import com.moviles.examenuno.models.Student
+import com.moviles.examenuno.repository.CourseRepository
+import com.moviles.examenuno.repository.StudentRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 
+class CourseViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(CourseViewModel::class.java)) {
+            return CourseViewModel(context) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
-class CourseViewModel  : ViewModel() {
+class CourseViewModel (private val context: Context) : ViewModel() {
 
     private val _courses = MutableStateFlow<List<Course>>(emptyList())
     val courses: StateFlow<List<Course>> get() = _courses
+    private val repository = CourseRepository(context)
+    private val _dataSource = MutableStateFlow<String>("")
+    val dataSource: StateFlow<String> get() = _dataSource
+    // Agregar propiedad para el estado de carga
+    private val _loadingState = MutableLiveData<String>()
+    val loadingState: LiveData<String> = _loadingState
+    var courseRomm: List<Course> = listOf()
+
+    fun loadCourse() {
+        viewModelScope.launch {
+            _courses.value = repository.getCourses()
+        }
+    }
+
+    fun saveCourses(courseList: List<Course>) {
+        viewModelScope.launch {
+            repository.insertCourses(courseList)
+        }
+    }
 
     fun fetchCourses() {
         viewModelScope.launch {
+            _loadingState.value = "Cargando desde la API..." // Muestra cuando cargamos desde la API
             try {
-                _courses.value = RetrofitInstance.api.getCourse()
-                Log.i("CourseViewModel", "Cursos obtenidos de API: ${_courses.value}")
+                val hasInternet = App.hasInternet()
+                if (hasInternet) {
+                    val apiCourse = RetrofitInstance.api.getCourse()
+                    repository.clearCourses()
+                    repository.insertCourses(apiCourse)
+                    Log.i("ViewModelInfo", "Datos sincronizados con API")
+                    _loadingState.value = "Datos desde la API" // Una vez sincronizado
+                }else {
+                    _loadingState.value = "Cargando desde la caché..." // Cuando no hay internet
+                }
+                val localStudent = repository.getCourses()
+                _courses.value = localStudent
             } catch (e: Exception) {
                 Log.e("CourseViewModel", "Error obteniendo cursos: ${e.message}")
                 // Aquí podrías cargar desde Room si falla el API
+                _loadingState.value = "Error al cargar los cursos"
+
+                val localCourse = repository.getCourses()
+                _courses.value = localCourse
             }
         }
     }
