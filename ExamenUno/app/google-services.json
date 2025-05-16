@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "94773757754",
+    "project_id": "examen-uno",
+    "storage_bucket": "examen-uno.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:94773757754:android:c50efdb17bcbbe11c33203",
+        "android_client_info": {
+          "package_name": "com.moviles.examenuno"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBL_OSCe_MOf2UEQRFPOqAQSCpNXmG7u3I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
